@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shehab’s 3-Tier Demo</title>
+</head>
+<body>
+  <h1>Hi from Shehab Gamal!</h1>
+  <button id="btn">Load Data</button>
+  <ul id="list"></ul>
+
+  <script>
+    document.getElementById("btn").onclick = async () => {
+      try {
+        // Adjust the host if your backend is elsewhere
+        const resp = await fetch("/api/data");
+        if (!resp.ok) throw new Error(resp.statusText);
+        const items = await resp.json();
+        const ul = document.getElementById("list");
+        ul.innerHTML = "";
+        items.forEach(o => {
+          const li = document.createElement("li");
+          li.textContent = `#${o.id}: ${o.info}`;
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        alert("Fetch error: " + err);
+      }
+    };
+  </script>
+</body>
+</html>
