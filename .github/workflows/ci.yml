@@ -29,8 +29,8 @@ jobs:
           file: ./${{ matrix.service }}/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}-algotask:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}-algotask:${{ github.sha }}
       - name: Smoke-test backend
         if: matrix.service == 'backend'
         run: |
