@@ -10,7 +10,6 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
-    # bring up MySQL so our backend can talk to it
     services:
       mysql:
         image: mysql:8.0
@@ -69,7 +68,7 @@ jobs:
             -p 5000:5000 \
             ${{ secrets.DOCKERHUB_USERNAME }}/shehab-backend-algotask:${{ github.sha }}
 
-          # wait for it to respond
+          # wait up to ~30s for it to respond
           for i in {1..10}; do
             if curl --fail http://localhost:5000/api/data; then
               echo "✅ backend is up!"
@@ -79,7 +78,7 @@ jobs:
             sleep 3
           done
 
-          # always dump logs so we can debug if something went wrong
+          # dump logs for debugging
           echo "=== backend container logs ==="
           docker logs backend-test || true
           docker rm -f backend-test
