@@ -1,4 +1,3 @@
-
 name: CI / Build & Push Docker Images
 
 on:
@@ -10,18 +9,39 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
+    # bring up MySQL so our backend can talk to it
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: rootpass
+          MYSQL_DATABASE: testdb
+          MYSQL_USER: appuser
+          MYSQL_PASSWORD: AppPass123!
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
     strategy:
       matrix:
         service: [ backend, frontend ]
+
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           registry: docker.io
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Build & Push ${{ matrix.service }} image
         uses: docker/build-push-action@v4
         with:
@@ -31,24 +51,35 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}-algotask:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/shehab-${{ matrix.service }}-algotask:${{ github.sha }}
+
       - name: Smoke-test backend
         if: matrix.service == 'backend'
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: appuser
+          DB_PASS: AppPass123!
+          DB_NAME: testdb
         run: |
-          docker run -d --name backend-test \
-            -e DB_HOST=host.docker.internal \
+          # run the backend container on host network so it sees our MySQL service
+          docker run -d --name backend-test --network host \
+            -e DB_HOST=$DB_HOST \
             -e DB_USER=$DB_USER \
             -e DB_PASS=$DB_PASS \
             -e DB_NAME=$DB_NAME \
             -p 5000:5000 \
-            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/shehab-backend-algotask:${{ github.sha }}
+
+          # wait for it to respond
           for i in {1..10}; do
-            curl --fail http://localhost:5000/api/data && break
-            echo "waiting for backend…"
+            if curl --fail http://localhost:5000/api/data; then
+              echo "✅ backend is up!"
+              break
+            fi
+            echo "waiting for backend… ($i)"
             sleep 3
           done
-        env:
-          DB_USER: appuser
-          DB_PASS: AppPass123!
-          DB_NAME: testdb
 
-
+          # always dump logs so we can debug if something went wrong
+          echo "=== backend container logs ==="
+          docker logs backend-test || true
+          docker rm -f backend-test
