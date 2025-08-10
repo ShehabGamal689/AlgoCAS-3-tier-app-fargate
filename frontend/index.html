@@ -20,13 +20,17 @@
         radial-gradient(1000px 600px at 110% 10%, #0b1220 0%, transparent 60%),
         linear-gradient(160deg, var(--bg1), var(--bg2));
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-      display:grid; place-items:center; padding:24px;
+       place-items:center; padding:24px;
       overflow-x:hidden;
+      display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100svh;
     }
 
     /* Scale wrapper: visually doubles the UI without breaking layout */
-    .shell{
-  transform: translateY(calc((1 - var(--ui-scale)) * 50vh)) scale(var(--ui-scale));
+   .shell{
+  transform: scale(var(--ui-scale));   /* was translateY(...) scale(...) */
   transform-origin: center;
 }
 
