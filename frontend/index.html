@@ -8,7 +8,8 @@
     :root{
       --bg1:#0f172a; --bg2:#1e293b; --fg:#e2e8f0; --muted:#94a3b8;
       --primary:#22d3ee; --accent:#a78bfa; --danger:#fb7185; --ok:#34d399;
-      --devops:#facc15; /* bright amber for high contrast */
+      --devops:#facc15;            /* DEV/OPS bright color */
+      --ui-scale: 1.3;               /* ← scale factor (2x) */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
@@ -20,9 +21,19 @@
         linear-gradient(160deg, var(--bg1), var(--bg2));
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
       display:grid; place-items:center; padding:24px;
+      overflow-x:hidden;
     }
+
+    /* Scale wrapper: visually doubles the UI without breaking layout */
+    .shell{
+  /* move up by half of the extra height, then scale */
+  transform: translateY(calc((1 - var(--ui-scale)) * 50%)) scale(var(--ui-scale));
+  transform-origin: center;
+  width: min(820px, 46vw);
+}
+
     .card{
-      width:min(900px, 95vw);
+      width:100%;
       background:rgba(255,255,255,0.05);
       border:1px solid rgba(255,255,255,0.08);
       border-radius:20px; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
@@ -41,9 +52,23 @@
       text-shadow: 0 2px 14px rgba(34,211,238,.35), 0 0 1px rgba(255,255,255,.6);
       -webkit-text-stroke: .25px rgba(255,255,255,.35);
     }
-    .hero .sub{ color:var(--muted); font-size:14px; margin-top:6px; }
 
-    /* Infinity symbol (smaller + tighter margins) */
+    /* AlgoCAS line */
+    .brand{
+  margin-top:6px;
+  font-weight:800;
+  /* bigger AlgoCAS */
+  font-size: clamp(28px, 4.2vw, 52px);  /* was clamp(18px, 2.6vw, 28px) */
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 1px 20px rgba(167,139,250,.4);
+}
+
+    .hero .sub{ color:var(--muted); font-size:14px; margin-top:-10px; }
+
+    /* Infinity symbol (smaller base; margins tight so 2x looks right) */
     .infinity-wrap{
       position:relative;
       width:min(360px, 70vw);
@@ -56,7 +81,7 @@
     }
 
     /* Controls layout */
-    .controls{ display:grid; gap:16px; margin-top:20px; }
+    .controls{ display:grid; gap:16px; margin-top:10px; }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .row.center{ justify-content:center; }
     .grid-2{ display:grid; grid-template-columns: 1fr; gap:16px; }
@@ -86,65 +111,68 @@
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="hero">
-      <h1>Welcome to <span class="name-strong">Shehab Gamal</span> 3-Tier App</h1>
+  <div class="shell">
+    <div class="card">
+      <div class="hero">
+        <h1>Welcome to <span class="name-strong">Shehab Gamal</span> 3-Tier App</h1>
+        <div class="brand">AlgoCAS</div>
 
-      <!-- Infinity with DEV left / OPS right (text drawn inside SVG) -->
-      <div class="infinity-wrap">
-        <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <defs>
-            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#22d3ee"/>
-              <stop offset="50%" stop-color="#a78bfa"/>
-              <stop offset="100%" stop-color="#34d399"/>
-            </linearGradient>
-            <filter id="textGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="b"/>
-              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-          </defs>
+        <!-- Infinity with DEV left / OPS right (text drawn inside SVG) -->
+        <div class="infinity-wrap">
+          <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#22d3ee"/>
+                <stop offset="50%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#34d399"/>
+              </linearGradient>
+              <filter id="textGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="2" result="b"/>
+                <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
 
-          <!-- Infinity curve -->
-          <path d="M20,50 C20,20 80,20 100,50 C120,80 180,80 180,50
-                   C180,20 120,20 100,50 C80,80 20,80 20,50"
-                fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" />
+            <!-- Infinity curve -->
+            <path d="M20,50 C20,20 80,20 100,50 C120,80 180,80 180,50
+                     C180,20 120,20 100,50 C80,80 20,80 20,50"
+                  fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" />
 
-          <!-- DEV centered in left loop -->
-          <text x="58" y="53" text-anchor="middle"
-                style="fill: var(--devops); font: 900 16px system-ui, sans-serif; letter-spacing: .2em;"
-                filter="url(#textGlow)">DEV</text>
+            <!-- DEV centered in left loop -->
+            <text x="58" y="53" text-anchor="middle"
+                  style="fill: var(--devops); font: 900 16px system-ui, sans-serif; letter-spacing: .2em;"
+                  filter="url(#textGlow)">DEV</text>
 
-          <!-- OPS centered in right loop -->
-          <text x="142" y="53" text-anchor="middle"
-                style="fill: var(--devops); font: 900 16px system-ui, sans-serif; letter-spacing: .2em;"
-                filter="url(#textGlow)">OPS</text>
-        </svg>
-      </div>
-
-      <div class="sub">Frontend → Backend → DB (MySQL)</div>
-    </div>
-
-    <!-- Controls -->
-    <div class="controls">
-      <div class="row center">
-        <button id="btn" class="btn-primary">Load Data</button>
-        <span id="status" class="muted"></span>
-      </div>
-
-      <div class="grid-2">
-        <div class="row">
-          <input id="newInfo" type="text" placeholder="text to insert…" />
-          <button id="btnInsert" class="btn-insert">Insert</button>
+            <!-- OPS centered in right loop -->
+            <text x="142" y="53" text-anchor="middle"
+                  style="fill: var(--devops); font: 900 16px system-ui, sans-serif; letter-spacing: .2em;"
+                  filter="url(#textGlow)">OPS</text>
+          </svg>
         </div>
-        <div class="row">
-          <input id="deleteId" type="number" min="1" placeholder="id to delete" />
-          <button id="btnDelete" class="btn-delete">Delete</button>
+
+        <div class="sub">Frontend → Backend → DB (MySQL)</div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="row center">
+          <button id="btn" class="btn-primary">Load Data</button>
+          <span id="status" class="muted"></span>
+        </div>
+
+        <div class="grid-2">
+          <div class="row">
+            <input id="newInfo" type="text" placeholder="text to insert…" />
+            <button id="btnInsert" class="btn-insert">Insert</button>
+          </div>
+          <div class="row">
+            <input id="deleteId" type="number" min="1" placeholder="id to delete" />
+            <button id="btnDelete" class="btn-delete">Delete</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <ul id="list"></ul>
+      <ul id="list"></ul>
+    </div>
   </div>
 
   <script>
