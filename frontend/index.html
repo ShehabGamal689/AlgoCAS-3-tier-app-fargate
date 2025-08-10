@@ -26,11 +26,10 @@
 
     /* Scale wrapper: visually doubles the UI without breaking layout */
     .shell{
-  /* move up by half of the extra height, then scale */
-  transform: translateY(calc((1 - var(--ui-scale)) * 50%)) scale(var(--ui-scale));
+  transform: translateY(calc((1 - var(--ui-scale)) * 50vh)) scale(var(--ui-scale));
   transform-origin: center;
-  width: min(820px, 46vw);
 }
+
 
     .card{
       width:100%;
