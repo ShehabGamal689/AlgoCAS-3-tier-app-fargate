@@ -1,114 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Shehab’s 3-Tier Demo</title>
-  <style>
-    body { font-family: system-ui, sans-serif; margin: 2rem; }
-    .row { display: flex; gap: .5rem; margin: .5rem 0; align-items: center; }
-    button { cursor: pointer; }
-    ul { padding-left: 1.25rem; }
-    .muted { color: #666; font-size: .9rem; }
-  </style>
 </head>
 <body>
   <h1>Hi from Shehab Gamal!</h1>
 
-  <div class="row">
-    <button id="btnLoad">Load Data</button>
-    <span id="status" class="muted"></span>
+  <!-- existing: load data -->
+  <button id="btn">Load Data</button>
+  <ul id="list"></ul>
+
+  <!-- new: insert -->
+  <div style="margin-top:12px">
+    <input id="newInfo" type="text" placeholder="text to insert…" />
+    <button id="btnInsert">Insert</button>
   </div>
 
-  <div class="row">
-    <input id="newInfo" type="text" placeholder="info text…" />
-    <button id="btnAdd">Insert</button>
-  </div>
-
-  <div class="row">
-    <input id="deleteId" type="number" placeholder="id to delete" min="1" />
+  <!-- new: delete -->
+  <div style="margin-top:8px">
+    <input id="deleteId" type="number" min="1" placeholder="id to delete" />
     <button id="btnDelete">Delete</button>
   </div>
 
-  <ul id="list"></ul>
-
   <script>
-    const $ = (id) => document.getElementById(id);
-    const list = $("list");
-    const statusEl = $("status");
-
-    const setStatus = (msg) => { statusEl.textContent = msg || ""; };
-    const handleResp = async (resp) => {
-      if (!resp.ok) {
-        const text = await resp.text().catch(()=>"");
-        throw new Error(`${resp.status} ${resp.statusText}${text ? " — " + text : ""}`);
-      }
-      return resp;
-    };
-
+    // keep your original loader, wrapped as a function so others can reuse it
     async function loadData() {
       try {
-        setStatus("Loading…");
-        const resp = await handleResp(fetch("/api/data"));
+        const resp = await fetch("/api/data");
+        if (!resp.ok) throw new Error(resp.statusText);
         const items = await resp.json();
-        renderList(items);
-        setStatus(`Loaded ${items.length} item(s).`);
-      } catch (e) {
-        alert("Fetch error: " + e.message);
-        setStatus("Load failed.");
+        const ul = document.getElementById("list");
+        ul.innerHTML = "";
+        items.forEach(o => {
+          const li = document.createElement("li");
+          li.textContent = `#${o.id}: ${o.info}`;
+          ul.appendChild(li);
+        });
+      } catch (err) {
+        alert("Fetch error: " + err);
       }
     }
 
-    function renderList(items) {
-      list.innerHTML = "";
-      items.forEach((o) => {
-        const li = document.createElement("li");
-        li.textContent = `#${o.id}: ${o.info} `;
-        const del = document.createElement("button");
-        del.textContent = "Delete";
-        del.onclick = () => deleteById(o.id);
-        li.appendChild(del);
-        list.appendChild(li);
-      });
-    }
+    // wire your existing button to the same function
+    document.getElementById("btn").onclick = loadData;
 
-    async function insertItem() {
-      const info = $("newInfo").value.trim();
+    // INSERT: POST /api/data with { info }
+    document.getElementById("btnInsert").onclick = async () => {
+      const info = document.getElementById("newInfo").value.trim();
       if (!info) { alert("Please enter some text."); return; }
       try {
-        setStatus("Inserting…");
-        await handleResp(fetch("/api/data", {
+        const resp = await fetch("/api/data", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ info })
-        }));
-        $("newInfo").value = "";
+        });
+        if (!resp.ok) throw new Error(resp.statusText);
+        document.getElementById("newInfo").value = "";
         await loadData();
-        setStatus("Inserted.");
-      } catch (e) {
-        alert("Insert error: " + e.message);
-        setStatus("Insert failed.");
+      } catch (err) {
+        alert("Insert error: " + err);
       }
-    }
+    };
 
-    async function deleteById(idInput) {
-      const id = Number(idInput ?? $("deleteId").value);
+    // DELETE: DELETE /api/data/:id
+    document.getElementById("btnDelete").onclick = async () => {
+      const id = Number(document.getElementById("deleteId").value);
       if (!id) { alert("Enter a valid id."); return; }
       try {
-        setStatus(`Deleting #${id}…`);
-        await handleResp(fetch(`/api/data/${id}`, { method: "DELETE" }));
-        $("deleteId").value = "";
+        const resp = await fetch(`/api/data/${id}`, { method: "DELETE" });
+        if (!resp.ok) throw new Error(resp.statusText);
+        document.getElementById("deleteId").value = "";
         await loadData();
-        setStatus(`Deleted #${id}.`);
-      } catch (e) {
-        alert("Delete error: " + e.message);
-        setStatus("Delete failed.");
+      } catch (err) {
+        alert("Delete error: " + err);
       }
-    }
-
-    // wire up buttons
-    $("btnLoad").onclick = loadData;
-    $("btnAdd").onclick = insertItem;
-    $("btnDelete").onclick = () => deleteById();
+    };
 
     // optional: auto-load on page open
     loadData();
